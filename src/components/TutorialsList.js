@@ -10,20 +10,31 @@ const TutorialsList = () => {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [searchTitle, setSearchTitle] = useState("");
   const queryClient = useQueryClient();
-  const { data, error, isSuccess } = useQuery(
+  const { refetchTutorials } = useQuery(
     "retrieveTutorials",
-    TutorialDataService.getAll
+    TutorialDataService.getAll,
+    {
+      onSuccess: (data) => {
+        setTutorials(data.data);
+      }, 
+      onError: (err) => {
+        console.log(err);
+      }
+    }
   );
   const {
-    data: searchData,
-    error: searchError,
-    isSuccess: searchIsSuccess,
     refetch: refetchSearch,
   } = useQuery(
     ["findByTitle", searchTitle],
     () => TutorialDataService.findByTitle(searchTitle),
     {
       enabled: false,
+      onSuccess: (data) => {
+        setTutorials(data.data);
+      }, 
+      onError: (err) => {
+        console.log(err);
+      }
     }
   );
   const { mutate } = useMutation(TutorialDataService.removeAll, {
@@ -36,26 +47,13 @@ const TutorialsList = () => {
     },
   });
 
-  const retrieveTutorials = useCallback(() => {
-    if (isSuccess && data) {
-      console.log(data.data);
-      setTutorials(data.data);
-    } else {
-      console.log(error);
-    }
-  }, [data, error, isSuccess]);
-
-  useEffect(() => {
-    retrieveTutorials();
-  }, [retrieveTutorials]);
-
   const onChangeSearchTitle = (e) => {
     const searchTitle = e.target.value;
     setSearchTitle(searchTitle);
   };
 
   const refreshList = () => {
-    retrieveTutorials();
+    refetchTutorials();
     setCurrentTutorial(null);
     setCurrentIndex(-1);
   };
@@ -71,11 +69,6 @@ const TutorialsList = () => {
 
   const findByTitle = () => {
     refetchSearch();
-    if (searchIsSuccess && searchData) {
-      setTutorials(searchData.data);
-    } else {
-      console.log(searchError);
-    }
   };
 
   return (
