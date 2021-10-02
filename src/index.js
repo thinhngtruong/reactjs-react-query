@@ -6,7 +6,13 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+}); 
 
 ReactDOM.render(
   <QueryClientProvider client={queryClient}>

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient  } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import { Link } from "react-router-dom";
 
 import TutorialDataService from "../services/TutorialService";
-
 
 const TutorialsList = () => {
   const [tutorials, setTutorials] = useState([]);
@@ -11,11 +10,25 @@ const TutorialsList = () => {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [searchTitle, setSearchTitle] = useState("");
   const queryClient = useQueryClient();
-  const { data, error, isSuccess } = useQuery('retrieveTutorials', TutorialDataService.getAll);
-  const { data: searchData, error: searchError, isSuccess: searchIsSuccess } = useQuery(['findByTitle', searchTitle], () => TutorialDataService.findByTitle(searchTitle));
+  const { data, error, isSuccess } = useQuery(
+    "retrieveTutorials",
+    TutorialDataService.getAll
+  );
+  const {
+    data: searchData,
+    error: searchError,
+    isSuccess: searchIsSuccess,
+    refetch: refetchSearch,
+  } = useQuery(
+    ["findByTitle", searchTitle],
+    () => TutorialDataService.findByTitle(searchTitle),
+    {
+      enabled: false,
+    }
+  );
   const { mutate } = useMutation(TutorialDataService.removeAll, {
     onSuccess: () => {
-      queryClient.invalidateQueries('retrieveTutorials')
+      queryClient.invalidateQueries("retrieveTutorials");
       refreshList();
     },
     onError: (err) => {
@@ -24,11 +37,11 @@ const TutorialsList = () => {
   });
 
   const retrieveTutorials = useCallback(() => {
-    if(isSuccess && data) {
-      console.log(data.data)
+    if (isSuccess && data) {
+      console.log(data.data);
       setTutorials(data.data);
     } else {
-      console.log(error)
+      console.log(error);
     }
   }, [data, error, isSuccess]);
 
@@ -36,7 +49,7 @@ const TutorialsList = () => {
     retrieveTutorials();
   }, [retrieveTutorials]);
 
-  const onChangeSearchTitle = e => {
+  const onChangeSearchTitle = (e) => {
     const searchTitle = e.target.value;
     setSearchTitle(searchTitle);
   };
@@ -57,10 +70,11 @@ const TutorialsList = () => {
   };
 
   const findByTitle = () => {
-    if(searchIsSuccess && searchData) {
+    refetchSearch();
+    if (searchIsSuccess && searchData) {
       setTutorials(searchData.data);
     } else {
-      console.log(searchError)
+      console.log(searchError);
     }
   };
 
